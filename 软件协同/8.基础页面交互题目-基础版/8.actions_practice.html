@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Playwright 基础交互练习页面</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .section h2 { margin-top: 0; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .context-menu-area { width: 200px; height: 100px; background: #f0f0f0; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; user-select: none; }
+        #message { margin-top: 10px; color: blue; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Playwright 基础交互练习</h1>
+
+    <!-- 1. 点击操作 (Click) -->
+    <div class="section">
+        <h2>1. 点击操作</h2>
+        <div class="form-group">
+            <button id="submit-btn" onclick="handleClick(event)">提交</button>
+        </div>
+        <div class="form-group">
+            <div class="context-menu-area" oncontextmenu="handleRightClick(event)">右键操作区</div>
+        </div>
+    </div>
+
+    <!-- 2. 输入与填充 (Fill & Type) -->
+    <div class="section">
+        <h2>2. 输入与填充</h2>
+        <div class="form-group">
+            <label for="username-input">用户名</label>
+            <input type="text" id="username-input" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label>搜索</label>
+            <input type="search" id="search-box" placeholder="输入搜索内容" oninput="showSuggest(this.value)">
+            <ul id="suggestions"></ul>
+        </div>
+    </div>
+
+    <!-- 3. 单选与复选 (Check / Uncheck) -->
+    <div class="section">
+        <h2>3. 单选与复选</h2>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="agree-term"> 我已阅读并同意服务协议
+            </label>
+        </div>
+        <div class="form-group">
+            <label><input type="radio" name="mode" value="public"> 公开模式</label>
+            <label><input type="radio" name="mode" value="private"> 隐私模式</label>
+        </div>
+    </div>
+
+    <!-- 4. 下拉框选择 (Select Option) -->
+    <div class="section">
+        <h2>4. 下拉框选择</h2>
+        <div class="form-group">
+            <label for="city-select">选择城市</label>
+            <select id="city-select">
+                <option value="">请选择</option>
+                <option value="bj">北京</option>
+                <option value="sh">上海</option>
+                <option value="gz">广州</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 5. 键盘与修饰键 (Press) -->
+    <div class="section">
+        <h2>5. 键盘与修饰键</h2>
+        <div class="form-group">
+            <textarea id="bio" rows="3" cols="30" placeholder="请输入个人简介..."></textarea>
+        </div>
+    </div>
+
+    <!-- 6. 综合场景 - 登录模拟 -->
+    <div class="section">
+        <h2>6. 综合场景</h2>
+        <div class="form-group">
+            <label for="login-account">账号</label>
+            <input type="text" id="login-account">
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="remember-me"> 记住我
+            </label>
+        </div>
+        <div class="form-group">
+            <label for="user-role">角色</label>
+            <select id="user-role">
+                <option value="user">普通用户</option>
+                <option value="admin">管理员</option>
+            </select>
+        </div>
+        <button id="login-now-btn" onclick="alert('登录成功！')">立即登录</button>
+    </div>
+
+    <div id="message">状态展示区</div>
+
+    <script>
+        function handleClick(e) {
+            let msg = "点击了提交按钮";
+            if (e.ctrlKey || e.metaKey) msg = "按住 Control 键点击了提交";
+            document.getElementById('message').innerText = msg;
+        }
+
+        function handleRightClick(e) {
+            e.preventDefault();
+            document.getElementById('message').innerText = "触发了右键菜单";
+        }
+
+        function showSuggest(val) {
+            const list = document.getElementById('suggestions');
+            list.innerHTML = val ? `<li>正在联想：${val}...</li>` : '';
+        }
+    </script>
+</body>
+</html>

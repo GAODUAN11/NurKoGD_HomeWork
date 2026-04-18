@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Playwright 自动等待实战练习</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; position: relative; }
+        button { padding: 10px 20px; cursor: pointer; }
+        
+        /* 场景 1: Loading 遮罩 */
+        #loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 100; font-weight: bold; color: #007bff;
+        }
+
+        /* 场景 2: 动画效果 */
+        #anim-btn {
+            position: relative; transition: all 2s ease-in-out; left: 0;
+        }
+        .moving { left: 300px !important; background-color: #ffc107; }
+
+        #result { margin-top: 20px; color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Playwright 自动等待 (Actionability) 实验室</h1>
+
+    <!-- 场景 1: Receives Events (可触达性) 检查 -->
+    <div class="box" id="step1">
+        <h3>场景 1：消失的加载层 (Receives Events)</h3>
+        <p>点击下方按钮，3秒后 Loading 层会消失。</p>
+        <div id="loading-overlay">正在拉取数据...</div>
+        <button id="target-btn" onclick="showResult('成功点击详情按钮！')">详情</button>
+    </div>
+
+    <!-- 场景 2: Stable (稳定性) 检查 -->
+    <div class="box">
+        <h3>场景 2：滑动的登录框 (Stable)</h3>
+        <p>点击执行后，按钮会进入 2 秒的长距离滑行动画。</p>
+        <button id="anim-btn" onclick="showResult('成功点击移动中的按钮！')">滑动的登录</button>
+        <button onclick="startAnim()">开始滑动</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        // 场景 1 逻辑
+        setTimeout(() => {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }, 3000);
+
+        // 场景 2 逻辑
+        function startAnim() {
+            document.getElementById('anim-btn').classList.add('moving');
+        }
+
+        function showResult(msg) {
+            document.getElementById('result').innerText = "操作结果：" + msg;
+        }
+    </script>
+</body>
+</html>
