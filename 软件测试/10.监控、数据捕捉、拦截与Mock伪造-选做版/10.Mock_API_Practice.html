@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Playwright 网络层控制练习页面</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; max-width: 800px; margin: auto; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .warning { color: red; font-weight: bold; display: none; margin-top: 10px; }
+        .success { color: green; }
+        #balance-display { font-size: 24px; font-weight: bold; }
+        .danger-ui { border: 2px solid red; background-color: #ffebee; }
+        button { padding: 8px 16px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9; }
+        button:hover { background: #e9e9e9; }
+    </style>
+</head>
+<body>
+    <h1>Playwright 网络层控制：Mock 与 API 校验实战</h1>
+
+    <div class="card">
+        <h3>实战 1：性能与错误审计监控 (page.on)</h3>
+        <p>点击下方按钮会加载一张大图并尝试请求一个可能出错的接口。</p>
+        <button onclick="triggerAudit()">触发审计测试</button>
+        <div id="img-container" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="card" id="balance-card">
+        <h3>实战 2：数据双重校验 (Mock 与精准断言)</h3>
+        <p>账户余额：<span id="balance-display">￥0.00</span> <span id="currency-display"></span></p>
+        <div id="balance-warning" class="warning">⚠️ 账户已欠费，请及时充值！</div>
+        <button onclick="fetchBalance()">刷新余额</button>
+    </div>
+
+    <div class="card">
+        <h3>实战 3 & 4：流量劫持与权限矩阵</h3>
+        <p>目标地址：<span id="target-url">https://api.production.com/v1/login</span></p>
+        <button onclick="checkAuth()">获取管理信息 (Header 注入)</button>
+        <div id="admin-content" style="display: none; margin-top: 10px;">
+            <button style="background: orange; color: white; border: none; padding: 10px; border-radius: 4px;">核心操作：删除全站数据</button>
+        </div>
+        <div id="auth-error" style="display: none; color: red; font-weight: bold; margin-top: 10px;">🚫 权限不足：请检查 Token 是否有效</div>
+    </div>
+
+    <div class="card">
+        <h3>实战 5：基于真实数据的“半 Mock”篡改 (route.fetch)</h3>
+        <p>用户列表（利用真实的公开 API 测试，第一个用户名若超长说明篡改成功）：</p>
+        <ul id="user-list">
+            <li>等待加载用户数据...</li>
+        </ul>
+        <button onclick="fetchUserList()">获取真实用户列表</button>
+    </div>
+
+    <script>
+        // 实战 1: 模拟大图和错误接口
+        function triggerAudit() {
+            const img = document.createElement('img');
+            img.src = 'https://picsum.photos/2000/2000'; 
+            img.width = 100;
+            document.getElementById('img-container').appendChild(img);
+            
+            // 触发 404/403 错误，必须在 server 环境下跑，否则 file 协议会报错
+            fetch('/api/v1/private-data').catch(() => {});
+        }
+
+        // 实战 2: 刷新余额
+        async function fetchBalance() {
+            try {
+                const res = await fetch('https://api.production.com/api/user/balance');
+                const data = await res.json();
+                document.getElementById('balance-display').innerText = "￥" + data.amount;
+                document.getElementById('currency-display').innerText = `(${data.currency})`;
+                
+                if (data.amount < 0) {
+                    document.getElementById('balance-warning').style.display = 'block';
+                    document.getElementById('balance-card').classList.add('danger-ui');
+                }
+            } catch (e) {
+                document.getElementById('balance-display').innerText = "接口异常，请配置 Mock";
+            }
+        }
+
+        // 实战 3 & 4: 权限校验
+        async function checkAuth() {
+            try {
+                // 模拟实战 3 的生产环境地址
+                fetch('https://api.production.com/v1/login').catch(()=>{}); // 静默错误，防止控制台爆红干扰
+                
+                // 模拟实战 4 的权限接口
+                const authRes = await fetch('/api/admin/info');
+                if (authRes.status === 200) {
+                    document.getElementById('admin-content').style.display = 'block';
+                    document.getElementById('auth-error').style.display = 'none';
+                } else {
+                    document.getElementById('admin-content').style.display = 'none';
+                    document.getElementById('auth-error').style.display = 'block';
+                }
+            } catch (e) {
+                console.warn("请求由于未 Mock 或网络原因失败");
+            }
+        }
+
+        // 实战 5: 用户列表 (已修复为真实公共 API)
+        async function fetchUserList() {
+            try {
+                document.getElementById('user-list').innerHTML = "<li>正在从真实服务器加载...</li>";
+                // 使用公共 API，配合 route.fetch 获取真实数据
+                const res = await fetch('https://jsonplaceholder.typicode.com/users');
+                const users = await res.json();
+                const list = document.getElementById('user-list');
+                
+                // 渲染前 3 个用户
+                list.innerHTML = users.slice(0, 3).map(u => 
+                    `<li>ID: ${u.id} | 用户名: <span style="color: blue; word-break: break-all;">${u.name}</span></li>`
+                ).join('');
+            } catch (e) {
+                document.getElementById('user-list').innerHTML = `<li style="color:red;">数据获取失败: ${e.message}</li>`;
+            }
+        }
+    </script>
+</body>
+</html>
